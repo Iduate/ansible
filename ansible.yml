@@ -1,0 +1,51 @@
+---
+- name: upgrade and backup tasks
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: stop apache2
+      service:
+        name: apache2
+        state: stopped
+
+    - name: delete files in the /var/www/html directory
+      file:
+        path: /var/www/html
+        state: absent
+
+    - name: clone the xerdocsHMS familycare branch
+      git:
+        repo: https://github.com/XerdocsNG/XerdocsHMS.git
+        dest: /var/www/html
+
+    - name: checkout the familycare branch
+      git:
+        repo: https://github.com/XerdocsNG/XerdocsHMS.git
+        dest: /var/www/html
+        version: familycare
+        force: yes
+
+    - name: delete the database.php file
+      file:
+        path: /var/www/html/application/config/database.php
+        state: absent
+
+    - name: ensure .htaccess file exists
+      file:
+        path: /var/www/html
+
+    - name: copy database.php file
+      copy:
+        src: database.php
+        dest: /var/www/html/application/config/database.php
+
+    - name: delete index.html
+      file:
+        path: /var/www/html/index.html
+        state: absent
+
+    - name: restart apache
+      service:
+       name: apache2
+       state: restarted
